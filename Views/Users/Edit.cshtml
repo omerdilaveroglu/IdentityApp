@@ -1,8 +1,10 @@
-﻿@model IdentityApp.ViewModels.CreateViewModel
+﻿@model IdentityApp.ViewModels.EditViewModel
 
-<h2>Create User</h2>
+<h2>Edit User</h2>
 
-<form asp-action="Create" method="post">
+<form asp-action="Edit" method="post">
+    <input type="hidden" name="id" value="@Model.id" />
+    
     <div class="mb-3">
         <label asp-for="FullName" class="form-label"></label>
         <input asp-for="FullName" class="form-control" />

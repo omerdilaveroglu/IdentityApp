@@ -6,7 +6,7 @@ namespace IdentityApp.ViewModels;
 public class CreateViewModel
 {
     [Required]
-    public String UserName { get; set; } = String.Empty;
+    public String FullName { get; set; } = String.Empty;
     [Required]
     [EmailAddress]
     public string Email { get; set; } = String.Empty;
