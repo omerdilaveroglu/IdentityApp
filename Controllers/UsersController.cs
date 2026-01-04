@@ -111,6 +111,17 @@ namespace IdentityApp.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user != null)
+            {   
+                var result = await _userManager.DeleteAsync(user);
+            }
+            return RedirectToAction("Index");
+        }
+
     }
 
 }
