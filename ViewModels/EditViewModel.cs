@@ -20,4 +20,6 @@ public class EditViewModel
     [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
     public string? ConfirmPassword { get; set; } = String.Empty;
 
+    public IList<string>? SelectedRoles { get; set; } = new List<string>();
+
 }

@@ -1,6 +1,7 @@
 using IdentityApp.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace IdentityApp.Controllers
 {
@@ -8,11 +9,13 @@ namespace IdentityApp.Controllers
     {
         // GET: UsersController
 
-        public UsersController(UserManager<AppUser> userManager)
+        public UsersController(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
         }
         private readonly UserManager<AppUser> _userManager;
+        private readonly RoleManager<AppRole> _roleManager;
         public ActionResult Index()
         {
             return View(_userManager.Users);
@@ -30,7 +33,7 @@ namespace IdentityApp.Controllers
             {
                 AppUser user = new AppUser
                 {
-                    UserName = model.Email,
+                    UserName = model.UserName,
                     Email = model.Email,
                     FullName = model.FullName
                 };
@@ -62,11 +65,15 @@ namespace IdentityApp.Controllers
 
             if (user != null)
             {
+
+                ViewBag.Roles = await _roleManager.Roles.Select(x => x.Name).ToListAsync();
+
                 return View(new ViewModels.EditViewModel
                 {
                     id = user.Id,
                     FullName = user.FullName ?? String.Empty,
-                    Email = user.Email
+                    Email = user.Email,
+                    SelectedRoles = await _userManager.GetRolesAsync(user)
                 });
             }
 
@@ -78,35 +85,39 @@ namespace IdentityApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByIdAsync(id);
+                var user = await _userManager.FindByIdAsync(model.id);
+
                 if (user != null)
                 {
-                    user.FullName = model.FullName;
                     user.Email = model.Email;
-                    user.UserName = model.Email;
+                    user.FullName = model.FullName;
 
                     var result = await _userManager.UpdateAsync(user);
 
+                    if(result.Succeeded && !string.IsNullOrEmpty(model.Password))
+                    {
+                        await _userManager.RemovePasswordAsync(user);
+                        await _userManager.AddPasswordAsync(user, model.Password);
+                    }
+
                     if (result.Succeeded)
                     {
-                        // EĞER ŞİFRE ALANI DOLUYSA ŞİFREYİ GÜNCELLE
-                        if (!string.IsNullOrEmpty(model.Password))
-                        {
-                            // Önce mevcut şifreyi kaldır
-                            await _userManager.RemovePasswordAsync(user);
-                            // Yeni şifreyi ekle
-                            var passwordResult = await _userManager.AddPasswordAsync(user, model.Password);
+                        await _userManager.RemoveFromRolesAsync(user, await _userManager.GetRolesAsync(user));
 
-                            if (!passwordResult.Succeeded)
-                            {
-                                foreach (var error in passwordResult.Errors)
-                                    ModelState.AddModelError("", error.Description);
-                                return View(model);
-                            }
+                        if (model.SelectedRoles != null)
+                        {
+                            await _userManager.AddToRolesAsync(user, model.SelectedRoles);
                         }
+                        
                         return RedirectToAction("Index");
                     }
+
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
                 }
+                
             }
             return View(model);
         }

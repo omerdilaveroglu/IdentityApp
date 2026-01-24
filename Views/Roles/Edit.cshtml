@@ -1,0 +1,46 @@
+@model AppRole
+
+<h2>Edit Role</h2>
+
+<form asp-action="Edit" method="post">
+
+    <input type="hidden" name="Id" value="@Model.Id" />
+    
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-action="Index" class="btn btn-secondary">Back to list</a>
+</form>
+
+<table class="table table-sm table-border">
+    <thead>
+        <th>Id</th>
+        <th>UserName</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th></th>
+    </thead>
+    <tbody>
+        @if (ViewBag.Users == null || !Enumerable.Any(ViewBag.Users))
+        {
+            <tr><td colspan="4" class="text-center">User Yok</td></tr>
+        }
+
+        @foreach (var user in ViewBag.Users)
+        {
+            <tr>
+                <td>@user.Id</td>
+                <td>@user.UserName</td>
+                <td>@user.FullName</td>
+                <td>@user.Email</td>
+                <td>
+                    <a asp-controller="Users" asp-action="Edit" asp-route-id="@user.Id" class="btn btn-primary btn-sm">Edit</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
